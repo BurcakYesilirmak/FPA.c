@@ -23,6 +23,11 @@
   long int num, num1, x1, num2, num3;
 } numbers;
 
+ typedef struct{
+  double mu_h;
+  double mu_l;
+} data;
+
 void pairs(double *x_h, double *x_l) {
     numbers inp[6];
     char buffer[150];
@@ -65,9 +70,9 @@ void pairs(double *x_h, double *x_l) {
        }
        // compare original and converted strings and find the starting different point 
        for(i=0; i<count; i++) {
-       for(inp[i].m=0; inp[i].m<inp[i].xx ; inp[i].m++) {                 //find the similar finish point (m)
-        if(inp[i].str[inp[i].m]!= inp[i].res1[inp[i].m])
-            break;     
+         for(inp[i].m=0; inp[i].m<inp[i].xx ; inp[i].m++) {                 //find the similar finish point (m)
+            if(inp[i].str[inp[i].m]!= inp[i].res1[inp[i].m])
+                break;     
                 } 
       } 
  
@@ -109,87 +114,88 @@ void pairs(double *x_h, double *x_l) {
     inp[3].xl =-inp[3].x1*pow(10,-(inp[3].xx)+1); 
     inp[4].xl =-inp[4].x1*pow(10,-(inp[4].xx)); 
     inp[5].xl = inp[5].x1*pow(10,-(inp[5].xx)-1); //} // 2-> take into account integer and comma (lowest part)
-        x_h[0] = inp[0].value/10;  //X
+        x_h[0] = inp[0].value/10;  // X
         x_h[1] = inp[1].value;     // Y
         x_h[2] = inp[2].value;     // Z
-        x_h[3] = inp[3].value;      //Vx
-        x_h[4] = inp[4].value;       //Vy
-        x_h[5] = inp[5].value;        //Vz
+        x_h[3] = inp[3].value;     // Vx
+        x_h[4] = inp[4].value;     // Vy
+        x_h[5] = inp[5].value;     // Vz
     for(i=0; i<count; i++) {
-    x_l[i] = inp[i].xl; }
-     /*   printf("xh double:\n%.21lf\n", x_h[i]);
+        x_l[i] = inp[i].xl; }
+     /* printf("xh double:\n%.21lf\n", x_h[i]);
         printf("xl double:\n%.21lf\n",x_l[i]);
         printf(" %s\n\n\n",inp[i].str);  */
     fclose(fp);
-   }  
+    }  
       
 
-void VeltkampSplit(double x, double *xh, double *xl) {        
-double p = C * x;
-double q = x - p;
-*xh = p + q; 
-*xl = x - *xh;
-}
+    void VeltkampSplit(double x, double *xh, double *xl) {        
+    double p = C * x;
+    double q = x - p;
+    *xh = p + q; 
+    *xl = x - *xh;
+    }
 
-void F2Sum(double a, double b,double *xh, double *xl) {
-double z;
-*xh= a+b;
-z = *xh-a;
-*xl= b-z;
-}
+    void F2Sum(double a, double b,double *xh, double *xl) {
+    double z;
+    *xh= a+b;
+    z = *xh-a;
+    *xl= b-z;
+    }
 
-void TwoSum(double a, double b,double *xh, double *xl) {
-double a1 ,b1 ,del_a ,del_b;
-*xh= a+b;
-a1= *xh-b;
-b1= *xh-a1;
-del_a = a-a1;
-del_b = b-b1;
-*xl = del_a+del_b;
-}
-//Pichat and Neumaier’s summation algorithm
-void Summation2(double xh1, double xl1, double xh2, double xl2,double *xh3, double *xl3 ){  
-  double t,s,u,v,z;
-  TwoSum(xh1, xh2, &t, &s);
-  TwoSum(xl1, xl2, &u, &v);
-  z= v+s+u; 
-  //F2Sum(t, z, xh3, xl3);
-  *xh3=t;
-  *xl3=z; 
-}   
+    void TwoSum(double a, double b,double *xh, double *xl) {
+    double a1 ,b1 ,del_a ,del_b;
+    *xh= a+b;
+    a1= *xh-b;
+    b1= *xh-a1;
+    del_a = a-a1;
+    del_b = b-b1;
+    *xl = del_a+del_b;
+    }
 
-// Dekker's & Polynomial Multiplication
-void Mult(double xh1, double xl1, double xh2, double xl2,double *xh3, double *xl3) {
-double xh_1, xl_1, xh_2, xl_2;
-VeltkampSplit(xh1, &xh_1, &xl_1); 
-VeltkampSplit(xh2, &xh_2, &xl_2); 
-*xh3 =  xh1*xh2;
-*xl3 =  xh_1*xh_2 - *xh3;
-*xl3 +=  xh_1*xl_2;
-*xl3 +=  xl_1*xh_2;
-*xl3 +=  xl_1*xl_2+ xl1*xh2 + xh1*xl2;
-return;
-}
+    //Pichat and Neumaier’s summation algorithm
+    void Summation2(double xh1, double xl1, double xh2, double xl2,double *xh3, double *xl3 ){  
+    double t,s,u,v,z;
+    TwoSum(xh1, xh2, &t, &s);
+    TwoSum(xl1, xl2, &u, &v);
+    z= v+s+u; 
+    //F2Sum(t, z, xh3, xl3);
+    *xh3=t;
+    *xl3=z; 
+    }   
 
-// with iteration
-void Division(double xh1, double xl1, double xh2, double xl2,double *xh3, double *xl3){
-double u1, u0, t, z;
-t =xh1/xh2;
-Mult(t, 0, xh2, 0,&u0,&u1); 
-z = xh1- u0;
-z -= u1;
-z += xl1;
-z -= *xh3 * xl2;
-z /= xh2;  
-F2Sum(t, z, xh3, xl3);
-return;
+    // Dekker's & Polynomial Multiplication
+    void Mult(double xh1, double xl1, double xh2, double xl2,double *xh3, double *xl3) {
+    double xh_1, xl_1, xh_2, xl_2;
+    VeltkampSplit(xh1, &xh_1, &xl_1); 
+    VeltkampSplit(xh2, &xh_2, &xl_2); 
+    *xh3 =  xh1*xh2;
+    *xl3 =  xh_1*xh_2 - *xh3;
+    *xl3 +=  xh_1*xl_2;
+    *xl3 +=  xl_1*xh_2;
+    *xl3 +=  xl_1*xl_2+ xl1*xh2 + xh1*xl2;
+    return;
+    }
+
+    // with iteration
+    void Division(double xh1, double xl1, double xh2, double xl2,double *xh3, double *xl3){
+    double u1, u0, t, z;
+    t =xh1/xh2;
+    Mult(t, 0, xh2, 0,&u0,&u1); 
+    z = xh1- u0;
+    z -= u1;
+    z += xl1;
+    z -= *xh3 * xl2;
+    z /= xh2;  
+    F2Sum(t, z, xh3, xl3);
+    return;
 } 
 
     void scalar_product2(double xh[3], double xl[3],double *xh3, double *xl3) {         // the square of the vector's itself
       double u0, u1, v0, v1, t0, t1 ,t2, t3;
-      Mult(xh[0], xh[3], xh[0], xl[3], &u0, &u1); // xh^2 and xl^2
-      Mult(xh[1], xl[1], xh[4], xl[4], &v0, &v1); // yh^2 and yl^2
-      Mult(xh[2], xl[2], xh[5], xl[5], &t0, &t1); // zh^2 and zl^2
+      Mult(xh[0], xl[0], xh[0], xl[0], &u0, &u1); // xh^2 and xl^2
+      Mult(xh[1], xl[1], xh[1], xl[1], &v0, &v1); // yh^2 and yl^2
+      Mult(xh[2], xl[2], xh[2], xl[2], &t0, &t1); // zh^2 and zl^2
       Summation2(u0,u1,v0,v1,&t2,&t3);
       Summation2(t0,t1,t2,t3,xh3,xl3);
       }
@@ -251,72 +257,64 @@ return;
     x_l[2] =  xl333; 
    } 
 
-int func (double t,const double y[], double f[], 
-        void *params)
+int func (double t,const double y[], double f[], void *params)
 {
   (void)(t); 
-  double mu = *(double *)params;
-  double xh, xl, yh, yl, zh, zl, xx, yy, xx_1, yy_1, o;
-  double xh1, xl1, xh2, xl2, xh3, xl3, xh4, xl4, xh11, xl11, xh22, xl22, xh33, xl33, xh44, xl44;
-  double unith1[3], unitl1[3], unith[3], unitl[3], sc_h, sc_l, sc2_h, sc2_l;
+  data *par = (data *)params;
+ // double mu_h =  0.017202098950000001276;
+ // double mu_l = -0.000000000000000001276;
 
-  //y[0]=x , y[1]=y , y[2]=z  
-    f[0] = y[6];  //Vx_h
-    f[1] = y[7];  //Vy_h
-    f[2] = y[8];  //Vz_h
+  double xh, yh, zh, xl, yl, zl, xx, yy, o;
+  double xh2, xl2, xh3, xl3, xh4, xl4;
+  double unith[3], unitl[3], sc_h, sc_l;
 
-    f[3] = y[9];  //Vx_l
-    f[4] = y[10]; //Vy_l
-    f[5] = y[11]; //Vz_l
+  //y[0]=x , y[1]=y , y[2]=z 
+
+    f[0] = y[6];  // Vx_h       // I did not take into account lowest part of velocity vector
+    f[1] = y[7];  // Vy_h
+    f[2] = y[8];  // Vz_h   
 
     xh = y[0]; // pairs of biggest part of position vector
     yh = y[1];
     zh = y[2];
+
     xl = y[3]; // pairs of lowest of for position vector
     yl = y[4];
     zl = y[5]; 
+
 
     // f[3] = -mu/k* I   ,      f[4] = -mu/k* J ,     f[5] =  -mu/k* K
     o = 0.0;
    double pos_h[3] = { xh, yh, zh};
    double pos_l[3] = { xl, yl, zl};
-   double part_l[3] = {o, o, o};
 
-
-       unit_vector_pairwise(pos_h, part_l, unith, unitl); //for biggest part
-       unit_vector_pairwise(pos_l, part_l, unith1, unitl1); //for lowest part
-
+       unit_vector_pairwise(pos_h, pos_l, unith, unitl); //for biggest part
        //k = y[0]*y[0]+y[1]*y[1]+y[2]*y[2] 
-       scalar_product2(pos_h, part_l, &sc_h, &sc_l);  
-       scalar_product2(pos_l, part_l, &sc2_h, &sc2_l);   
+       scalar_product2(pos_h, pos_l, &sc_h, &sc_l);  
  
        //  FOR BIGGEST PART
-       Division(mu, o, sc_h, sc_l, &xx, &yy); //  -mu / (Xh^2+Yh^2+Zh^2)
-       Mult(xx, yy, -1, o, &xh1, &xl1);     // pairs of (-mu/k)  
+       Division(par->mu_h, par->mu_l, sc_h, sc_l, &xx, &yy); //  -mu / (Xh^2+Yh^2+Zh^2)
 
-       // (-mu/k)*UNIT for each component , where k = Xh^2+Yh^2+Zh^2
-       Mult(xh1, xl1, unith[0], unitl[0], &xh2, &xl2);      
-       Mult(xh1, xl1, unith[1], unitl[1], &xh3, &xl3);     
-       Mult(xh1, xl1, unith[2], unitl[2], &xh4, &xl4); 
+       // (-mu/k)*UNIT for each component , where k = (Xh+Xl)^2+(Yh+Yl)^2+(Zh+Zl)^2
+       Mult(-xx, -yy, unith[0], unitl[0], &xh2, &xl2);      
+       Mult(-xx, -yy, unith[1], unitl[1], &xh3, &xl3);     
+       Mult(-xx, -yy, unith[2], unitl[2], &xh4, &xl4); 
 
-     //  FOR LOWEST PART
-       Division(mu, o, sc2_h, sc2_l, &xx_1, &yy_1); //  -mu / (Xl^2+Yl^2+Zl^2)
-       Mult(xx_1, yy_1, -1, o, &xh11, &xl11);     // pairs of (-mu/k)  
 
-      // (-mu/k)*unit for each component , where k = Xl^2+Yl^2+Zl^2
-       Mult(xh11, xl11, unith1[0], unitl1[0], &xh22, &xl22);      
-       Mult(xh11, xl11, unith1[1], unitl1[1], &xh33, &xl33);     
-       Mult(xh11, xl11, unith1[2], unitl1[2], &xh44, &xl44);   
+ /*     printf("%.16le\n", xh2);
+                  printf("%.16le\n", xh3);
+                           printf("%.16le\n", xh4);
+           printf("%.16le\n", xl2);
+                  printf("%.16le\n", xl3);
+                           printf("%.16le\n", xl4);                        
+    exit(1);    */
 
-       // assign corresponding system    
+       // assign corresponding system   
+
        // -mu*R/ |R|^(3/2)            should I sum them with accurate calculation OR NOT?               
-       f[6]=  xh2+xh22;   //Hh_x
-       f[7]=  xh3+xh33;   //Hh_y
-       f[8]=  xh4+xh44;   //Hh_z
-
-       f[9]=  xl2;   //Hl_x  // I dont take the lowest lowest part
-       f[10]= xl3;   //Hl_y
-       f[11]= xl4;   //Hl_z
+       f[6]=  xh2;   // h_x
+       f[7]=  xh3;   // h_y
+       f[8]=  xh4;   // h_z
     
   return GSL_SUCCESS;
 }
@@ -324,26 +322,23 @@ int func (double t,const double y[], double f[],
 int jac (double t,const double y[], double *dfdy,
      double dfdt[], void *params)
 {
-  (void)(t); 
-  double mu = *(double *)params;
-  double x_h, x_l, y_h, y_l, z_h, z_l ;
-  double unith1[3], unitl1[3], unith[3], unitl[3], sc_h, sc_l, sc2_h, sc2_l;
-  double xh, xl, xh_1, xl_1, xhh, xll, xhh1, xll1, XH, YH, ZH, XL, YL, ZL, XH2, YH2, ZH2, XL2, YL2, ZL2;
-  double xh11, xl11, xh111, xl111, xh1, xl1,  xh2, xl2, xh3, xl3, xh_11, xl_11,  xh_22, xl_22, xh_33, xl_33;
-  double xh2x, xl2x , xh2y, xl2y, xh2z, xl2z, xh_2x, xl_2x , xh_2y, xl_2y, xh_2z, xl_2z; 
-  double xh_A, xl_A, xh_B, xl_B, xh_C, xl_C, xh_A2, xl_A2, xh_B2, xl_B2, xh_C2, xl_C2;
-  double  xhA, xhB, xhC, xlA, xlB, xlC, xhA2, xhB2, xhC2, xlA2, xlB2, xlC2;
-  double k_xH, k_xh, k_yH, k_yh, k_zH, k_zh, k_xL, k_xl, k_yL, k_yl, k_zL, k_zl, xH_muk2, xL_muk2, xh_muk2, xl_muk2; 
-  double xh_X, xl_X, xh_Y, xl_Y, xh_Z, xl_Z,  xh_X2, xl_X2, xh_Y2, xl_Y2, xh_Z2, xl_Z2 ;
-  double xhxy, xlxy, xhxz, xlxz, xhyz, xlyz, xh_xy, xl_xy, xh_xz, xl_xz, xh_yz, xl_yz ;
-  double xh_I, xl_I, xh_J, xl_J, xh_K, xl_K, xh_i, xl_i, xh_j, xl_j, xh_k, xl_k;
+ // (void)(t); 
+  data *par = (data *)params;
+  //double mu_h = 0.017202098950000001276;
+  //double mu_l =-0.000000000000000001276;
+  double x_h, y_h, z_h, x_l, y_l, z_l;
+  double unith[3], unitl[3], sc_h, sc_l;
+  double xh, xl, XH, YH, ZH, XL, YL, ZL;
+  double xh11, xl11, xh1, xl1,  xh2, xl2, xh3, xl3;
+  double xh2x, xl2x , xh2y, xl2y, xh2z, xl2z; 
+  double xh_A, xl_A, xh_B, xl_B, xh_C, xl_C;
+  double xhA, xhB, xhC, xlA, xlB, xlC;
+  double k_xH, k_xh, k_yH, k_yh, k_zH, k_zh, xH_muk2, xL_muk2; 
+  double xh_X, xl_X, xh_Y, xl_Y, xh_Z, xl_Z;
+  double xh_I, xl_I, xh_J, xl_J, xh_K, xl_K;
   double xh_xj, xl_xj, xh_xk, xl_xk, xh_yi, xl_yi, xh_yk, xl_yk, xh_zi, xl_zi, xh_zj, xl_zj;
-  double xh_xj2, xl_xj2, xh_xk2, xl_xk2, xh_yi2, xl_yi2, xh_yk2, xl_yk2, xh_zi2, xl_zi2, xh_zj2, xl_zj2;
-  int i, k ;
-  double p, o;
-
-  gsl_matrix_view dfdy_mat
-    = gsl_matrix_view_array (dfdy, 12, 12);
+  double p,o;
+  int i,k;
 
    // mu*(2*y[0]*y[0]-(y[1]*y[1]+y[2]*y[2]))/(r*k))  =    [ 2*X^2-(Y^2-Z^2)]* mu / X*K^2 * I
 
@@ -359,266 +354,176 @@ int jac (double t,const double y[], double *dfdy,
     o = 0.0;
     double pos_h[3] = { x_h, y_h, z_h};
     double pos_l[3] = { x_l, y_l, z_l};
-    double part_l[3] = {o, o, o};
-       
-        // separate position vectors from buffer line and calculate unit vector
-        unit_vector_pairwise(pos_h, part_l, unith, unitl); //for biggest part
-        unit_vector_pairwise(pos_l, part_l, unith1, unitl1); //for lowest part
 
+       unit_vector_pairwise(pos_h, pos_l, unith, unitl); //for biggest part
        //k = y[0]*y[0]+y[1]*y[1]+y[2]*y[2] 
-       scalar_product2(pos_h, part_l, &sc_h, &sc_l);     //for biggest part
-       scalar_product2(pos_l, part_l, &sc2_h, &sc2_l);   //for lowest part
+       scalar_product2(pos_h, pos_l, &sc_h, &sc_l); 
 
 
     // calculate first scalar product of position vector 
     // then find corresponding expression for function
-     xhh= sc_h; //biggest
-     xll= sc_l;
-     xhh1= sc2_h; //smallest
-     xll1= sc2_l;
 
      // r= k*sqrt(k)   we need to find k^2 for both where k = X^2+Y^2+Z^2
-     Mult(sc_h, sc_l, xhh, xll, &xh, &xl); 
-     Mult(sc2_h, sc2_l, xhh1, xll1, &xh_1, &xl_1); 
+     Mult(sc_h, sc_l, sc_h, sc_l, &xh, &xl); 
 
      // for mu/k^2*Rh
-     Mult(xh, xl, x_h, o, &k_xH, &k_xh);  // k^2*Xh
-     Mult(xh, xl, y_h, o, &k_yH, &k_yh);  // k^2*Yh
-     Mult(xh, xl, z_h, o, &k_zH, &k_zh);  // k^2*Zh
+     Mult(xh, xl, x_h, x_l, &k_xH, &k_xh);  // k^2*(Xh+Xl)
+     Mult(xh, xl, y_h, y_l, &k_yH, &k_yh);  // k^2*(Yh+Yl)
+     Mult(xh, xl, z_h, z_l, &k_zH, &k_zh);  // k^2*(Zh+Zl)
 
-     Division(mu, o, k_xH, k_xh, &XH, &XL); // mu/k^2*Xh
-     Division(mu, o, k_yH, k_yh, &YH, &YL); // mu/k^2*Yh
-     Division(mu, o, k_zH, k_zh, &ZH, &ZL); // mu/k^2*Zh
-
-     // for mu/k^2*Rl
-     Mult(xh_1, xl_1, x_l, o, &k_xL, &k_xl); // k^2*Xl
-     Mult(xh_1, xl_1, y_l, o, &k_yL, &k_yl); // k^2*Yl
-     Mult(xh_1, xl_1, z_l, o, &k_zL, &k_zl); // k^2*Zl
-
-     Division(mu, o, k_xL, k_xl, &XH2, &XL2); // mu/k^2*Xl
-     Division(mu, o, k_yL, k_yl, &YH2, &YL2); // mu/k^2*Yl
-     Division(mu, o, k_zL, k_zl, &ZH2, &ZL2); // mu/k^2*Zl
+     Division(par->mu_h, par->mu_l, k_xH, k_xh, &XH, &XL); // mu/(k^2*(Xh+Xl))
+     Division(par->mu_h, par->mu_l,  k_yH, k_yh, &YH, &YL); // mu/(k^2*(Yh+Yl))
+     Division(par->mu_h, par->mu_l, k_zH, k_zh, &ZH, &ZL); // mu/(k^2*(Zh+Zl))
 
      // mu/k^2 for both pairs
-     Division(mu, o, xh, xl, &xh11, &xl11); 
-     Division(mu, o, xh_1, xl_1, &xh111, &xl111); 
-
+     Division(par->mu_h, par->mu_l, xh, xl, &xh11, &xl11);  
      Mult(xh11, xl11, 3.0, o, &xH_muk2, &xL_muk2);    //  3*mu/k2  for biggest 
-     Mult(xh111, xl111, 3.0, o, &xh_muk2, &xl_muk2);   //  3*mu/k2  for smallest
 
     // CALCULATE mu*(2*y[0]*y[0]-(y[1]*y[1]+y[2]*y[2]))/(k^2*sqrt(k)) where k = X^2+Y^2+Z^2
 
     // FOR BIGGEST PART
-     Mult(y[0], o, x_h, o, &xh1, &xl1); //Xh^2
-     Mult(y[1], o, y_h, o, &xh2, &xl2); //Yh^2
-     Mult(y[2], o, z_h, o, &xh3, &xl3); //Zh^2
+     Mult(x_h, x_l, x_h, x_l, &xh1, &xl1); //X^2
+     Mult(y_h, y_l, y_h, y_l, &xh2, &xl2); //Y^2
+     Mult(z_h, z_l, z_h, z_l, &xh3, &xl3); //Z^2
 
-     Mult(xh1, xl1, 2.0, o, &xh2x, &xl2x);    // 2*Xh^2
-     Mult(xh2, xl2, 2.0, o, &xh2y, &xl2y);    // 2*Yh^2
-     Mult(xh3, xl3, 2.0, o, &xh2z, &xl2z);    // 2*Zh^2
+     Mult(xh1, xl1, 3.0, o, &xh2x, &xl2x);    // 3*(Xh+Xl)^2
+     Mult(xh2, xl2, 3.0, o, &xh2y, &xl2y);    // 3*(Yh+Yl)^2
+     Mult(xh3, xl3, 3.0, o, &xh2z, &xl2z);    // 3*(Zh+Zl)^2
 
-     Summation2(xh1, xl1, xh2, xl2, &xhxy, &xlxy); // Xh^2+Yh^2 
-     Summation2(xh1, xl1, xh3, xl3, &xhxz, &xlxz); // Xh^2+Zh^2 
-     Summation2(xh3, xl3, xh2, xl2, &xhyz, &xlyz); // Yh^2+Zh^2 
+     Summation2(xh2x, xl2x, -xh, -xl, &xh_A, &xl_A);   //2*(Xh+Xl)^2-k^2
+     Summation2(xh2y, xl2y, -xh, -xl, &xh_B, &xl_B);   //2*(Yh+Yl)^2-k^2
+     Summation2(xh2z, xl2z, -xh, -xl, &xh_C, &xl_C);   //2*(Zh+Zl)^2-k^2
 
-     Summation2(xh2x, xl2x, -xhyz, -xlyz, &xh_A, &xl_A);   //2*Xh^2-(Yh^2+Zh^2)
-     Summation2(xh2y, xl2y, -xhxz, -xlxz, &xh_B, &xl_B);   //2*Yh^2-(Xh^2+Zh^2)
-     Summation2(xh2z, xl2z, -xhxy, -xlxy, &xh_C, &xl_C);   //2*Zh^2-(Xh^2+Yh^2)
-
-     Mult(xh_A, xl_A, XH, XL, &xhA, &xlA);    // 2*Xh^2-(Yh^2+Zh^2)*(mu/k^2*Xh) = A
-     Mult(xh_B, xl_B, YH, YL, &xhB, &xlB);    // 2*Yh^2-(Xh^2+Zh^2)*(mu/k^2*Yh) = B
-     Mult(xh_C, xl_C, ZH, ZL, &xhC, &xlC);    // 2*Zh^2-(Xh^2+Yh^2)*(mu/k^2*Zh) = C
+     Mult(xh_A, xl_A, XH, XL, &xhA, &xlA);    // 2*X^2-k^2*(mu/k^2*X) = A
+     Mult(xh_B, xl_B, YH, YL, &xhB, &xlB);    // 2*Y^2-k^2*(mu/k^2*Y) = B
+     Mult(xh_C, xl_C, ZH, ZL, &xhC, &xlC);    // 2*Z^2-k^2*(mu/k^2*Z) = C
 
 
      Mult(xhA, xlA, unith[0], unitl[0], &xh_I, &xl_I);    // A*I 
      Mult(xhB, xlB, unith[1], unitl[1], &xh_J, &xl_J);    // B*J
      Mult(xhC, xlC, unith[2], unitl[2], &xh_K, &xl_K);    // C*K 
 
-    // FOR SMALLEST PART
-     Mult(y[3], o, x_l, o, &xh_11, &xl_11); //Xl^2
-     Mult(y[4], o, y_l, o, &xh_22, &xl_22); //Yl^2
-     Mult(y[5], o, z_l, o, &xh_33, &xl_33); //Zl^2
-
-     Mult(xh_11, xl_11, 2.0, o, &xh_2x, &xl_2x);    // 2*Xl^2
-     Mult(xh_22, xl_22, 2.0, o, &xh_2y, &xl_2y);    // 2*Yl^2
-     Mult(xh_33, xl_33, 2.0, o, &xh_2z, &xl_2z);    // 2*Zl^2
-
-     Summation2(xh_11, xl_11, xh_22, xl_22, &xh_xy, &xl_xy); // Xl^2+Yl^2 
-     Summation2(xh_11, xl_11, xh_33, xl_33, &xh_xz, &xl_xz); // Xl^2+Zl^2 
-     Summation2(xh_33, xl_33, xh_22, xl_22, &xh_yz, &xl_yz); // Yl^2+Zl^2 
-        
-     Summation2(xh_2x, xl_2x, -xh_yz, -xl_yz, &xh_A2, &xl_A2);   //2*Xh^2-(Yh^2+Zh^2)
-     Summation2(xh_2y, xl_2y, -xh_xz, -xl_xz, &xh_B2, &xl_B2);   //2*Yh^2-(Xh^2+Zh^2)
-     Summation2(xh_2z, xl_2z, -xh_xy, -xl_xy, &xh_C2, &xl_C2);   //2*Zh^2-(Xh^2+Yh^2)
-
-     Mult(xh_A2, xl_A2, XH2, XL2, &xhA2, &xlA2);    // 2*Xl^2-(Yl^2+Zl^2)*(mu/k^2*Xl) = D
-     Mult(xh_B2, xl_B2, YH2, YL2, &xhB2, &xlB2);    // 2*Yl^2-(Xl^2+Zl^2)*(mu/k^2*Yl) = E
-     Mult(xh_C2, xl_C2, ZH2, ZL2, &xhC2, &xlC2);    // 2*Zl^2-(Xl^2+Yl^2)*(mu/k^2*Zl) = F
-
-     Mult(xhA2, xlA2, unith1[0], unitl1[0], &xh_i, &xl_i);    // D*i 
-     Mult(xhB2, xlB2, unith1[1], unitl1[1], &xh_j, &xl_j);    // E*j
-     Mult(xhC2, xlC2, unith1[2], unitl1[2], &xh_k, &xl_k);    // F*k 
-    
-
     // calculate 3*mu*y[0]*y[1]/(k^2*sqrt(k) where k = X^2+Y^2+Z^2
-        // FOR BIGGEST
-     Mult(xH_muk2, xL_muk2, y[0], o, &xh_X, &xl_X);    // 3*mu/k2* Xh
-     Mult(xH_muk2, xL_muk2, y[1], o, &xh_Y, &xl_Y);    // 3*mu/k2* Yh
-     Mult(xH_muk2, xL_muk2, y[2], o, &xh_Z, &xl_Z);    // 3*mu/k2* Zh
-
-     // FOR SMALLEST
-
-     Mult(xh_muk2, xl_muk2, y[3], o, &xh_X2, &xl_X2);    // 3*mu/k2* Xl
-     Mult(xh_muk2, xl_muk2, y[4], o, &xh_Y2, &xl_Y2);    // 3*mu/k2* Yl
-     Mult(xh_muk2, xl_muk2, y[5], o, &xh_Z2, &xl_Z2);    // 3*mu/k2* Zl
-
+    
+     Mult(xH_muk2, xL_muk2, x_h, x_l, &xh_X, &xl_X);    // 3*mu/k2* Xh
+     Mult(xH_muk2, xL_muk2, y_h, y_l, &xh_Y, &xl_Y);    // 3*mu/k2* Yh
+     Mult(xH_muk2, xL_muk2, z_h, z_l, &xh_Z, &xl_Z);    // 3*mu/k2* Zh
     
      // for I
      Mult(xh_Y, xl_Y, unith[0], unitl[0], &xh_yi, &xl_yi);    // Yh*I
      Mult(xh_Z, xl_Z, unith[0], unitl[0], &xh_zi, &xl_zi);    // Zh*I
+
      // for J
      Mult(xh_X, xl_X, unith[1], unitl[1], &xh_xj, &xl_xj);    // Xh*J
      Mult(xh_Z, xl_Z, unith[1], unitl[1], &xh_zj, &xl_zj);    // Zh*J
+
      // for K
      Mult(xh_X, xl_X, unith[2], unitl[2], &xh_xk, &xl_xk);    // Xh*K
      Mult(xh_Y, xl_Y, unith[2], unitl[2], &xh_yk, &xl_yk);    // Yh*K
 
-      // for i
-     Mult(xh_Y2, xl_Y2, unith1[0], unitl1[0], &xh_yi2, &xl_yi2);    // Yl*i
-     Mult(xh_Z2, xl_Z2, unith1[0], unitl1[0], &xh_zi2, &xl_zi2);    // Zl*i
-     // for j
-     Mult(xh_X2, xl_X2, unith1[1], unitl1[1], &xh_xj2, &xl_xj2);    // Xl*j
-     Mult(xh_Z2, xl_Z2, unith1[1], unitl1[1], &xh_zj2, &xl_zj2);    // Zl*j
-     // for k
-     Mult(xh_X2, xl_X2, unith1[2], unitl1[2], &xh_xk2, &xl_xk2);    // Xl*k
-     Mult(xh_Y2, xl_Y2, unith1[2], unitl1[2], &xh_yk2, &xl_yk2);    // Yl*k
+    gsl_matrix_view dfdy_mat
+        = gsl_matrix_view_array (dfdy, 12, 12);
     
   // fill the Jacobian matrix 
   gsl_matrix * m = &dfdy_mat.matrix;
-     
-     
      // Part 1 for zeros
-    for (i=0 ; i<=5; i++) {
-      for(k=0; k<=5; k++){
+    for (i=0 ; i<=2; i++) {
+      for(k=0; k<=2; k++){
          p=0.0; 
-    gsl_matrix_set (m, i, k, p);
+        gsl_matrix_set (m, i, k, p);
       } }
 
     // Part 1 for one and zeros
-    p=0;  
-    for (i=0 ; i<=5; i++) {
-      for(k=6; k<=11; k++){
-        if ( k-i == 6)
+          p=0;  
+    for (i=0 ; i<=2; i++) {
+      for(k=3; k<=5; k++){
+        if ( k-i == 3)
           p= 1.0; 
            else if ( k-i != 6)
            p=0.0;
-    gsl_matrix_set (m, i, k, p);
+            gsl_matrix_set (m, i, k, p);
     } }
 
       //Part 2 for zeros
          p=0.0;
-    for (i=6 ; i<=11; i++) {
-      for( k=6; k<=11; k++){
-     gsl_matrix_set (m, i, k, p);
-      } }
-
-      p=0.0;
-    for (i=6 ; i<=8; i++) {
+    for (i=3 ; i<=5; i++) {
       for( k=3; k<=5; k++){
-    gsl_matrix_set (m, i, k, p);
+            gsl_matrix_set (m, i, k, p);
       } }
 
-    p=0.0;
-    for (i=9 ; i<=11; i++) {
-      for( k=0; k<=2; k++){
-    gsl_matrix_set (m, i, k, p);
-      } }
 
-  gsl_matrix_set (m, 6, 0, (xh_i+xh_I));                            //it is coming pairs?
-  gsl_matrix_set (m, 6, 1, (xh_yi+xh_yi2));
-  gsl_matrix_set (m, 6, 2, (xh_zi+xh_zi2));
+  gsl_matrix_set (m, 3, 0, xh_I);
+  gsl_matrix_set (m, 3, 1, xh_yi);
+  gsl_matrix_set (m, 3, 2, xh_zi);
 
-  gsl_matrix_set (m, 7, 0, (xh_xj+xh_xj2));
-  gsl_matrix_set (m, 7, 1, (xh_j+xh_J));
-  gsl_matrix_set (m, 7, 2, (xh_zj+xh_zj2));
+  gsl_matrix_set (m, 4, 0, xh_xj);
+  gsl_matrix_set (m, 4, 1, xh_J);
+  gsl_matrix_set (m, 4, 2, xh_zj);
 
-  gsl_matrix_set (m, 8, 0, (xh_xk+xh_xk2));
-  gsl_matrix_set (m, 8, 1, (xh_yk+xh_yk2));
-  gsl_matrix_set (m, 8, 2, (xh_k+xh_K));
+  gsl_matrix_set (m, 5, 0, xh_xk);
+  gsl_matrix_set (m, 5, 1, xh_yk);
+  gsl_matrix_set (m, 5, 2, xh_K);
 
-  gsl_matrix_set (m, 9, 0, xl_I); 
-  gsl_matrix_set (m, 9, 1, (xl_yi+xl_yi2));
-  gsl_matrix_set (m, 9, 2, (xl_zi+xl_zi2));
-
-  gsl_matrix_set (m, 10, 0, (xl_xj+xl_xj2)); 
-  gsl_matrix_set (m, 10, 1, xl_J);
-  gsl_matrix_set (m, 10, 2, (xl_zj+xl_zj2));
-
-  gsl_matrix_set (m, 11, 0, (xl_yk+xl_yk2));
-  gsl_matrix_set (m, 11, 1, (xl_xk+xl_xk2));
-  gsl_matrix_set (m, 11, 2, xl_K);
 
 // set explicit t dependence of f[i] 
-     for (i=0 ; i<=12; i++) {
-        dfdt[0] = 0.0; } 
+  dfdt[0] = 0.0;
+  dfdt[1] = 0.0;
+  dfdt[2] = 0.0;
+  dfdt[3] = 0.0;
+  dfdt[4] = 0.0;
+  dfdt[5] = 0.0;  
   return GSL_SUCCESS;
-}
+    }
 
-int
-main (void)
-{
-    double k3=0.01720209895, mu ;
-    mu= k3*k3; 
-    double abserr = 1e-13;
-    double relerr = 1e-10;
-    double xh[6], xl[6];
+int main (void) 
+    {
+    double abserr = 1e-14;
+    double relerr = 1e-16;
+   // double a, b, c, aa, bb, cc;
+    double xh[6], xl[6], k_h, k_l;
     // split the numbers as pairs
      pairs(xh, xl) ;
+     data *par;
+     par=(data *)malloc(sizeof(data));
+     k_h=0.017202098950000001276;
+     k_l=-0.000000000000000001276;
+     Mult(k_h, k_l, k_h, k_l, &par->mu_h, &par->mu_l); 
+        gsl_odeiv2_system sys = {func, jac, 12, par};
 
-    // time step parameters 
-    double t = 0.0, t_step=0.5, TT=1700;
+          // time step parameters 
+double t = 0.0, t_step=1, TT=2000;
 
     // Select explicit method
-     const gsl_odeiv2_step_type * T
-      = gsl_odeiv2_step_msadams;
+     const gsl_odeiv2_step_type * T = gsl_odeiv2_step_msadams;
     
-    gsl_odeiv2_system sys = {func, jac, 12, &mu};
 
     //set errors and create the driver object
     gsl_odeiv2_driver* driver= 
          gsl_odeiv2_driver_alloc_y_new(&sys, T, t_step, abserr, relerr); 
-              double y[12] = { xh[0], xh[1], xh[2],  xl[0], xl[1], xl[2], xh[3], xh[4], xh[5], xl[3], xl[4], xl[5]};
+             // set the values inside y[]
+    double y[12] = { xh[0], xh[1], xh[2], xl[0], xl[1], xl[2], xh[3], xh[4], xh[5], xl[3], xl[4], xl[5]};
 
-    // set the values inside y[]
     FILE *kk, *pp;
-    kk=fopen("TEST_Rh_Rl.txt","w");
-    pp=fopen("TEST_Vh_Vl.txt","w"); 
+    kk=fopen("ACC_Rh_Rl.txt","w");
+    pp=fopen("ACC_Vh_Vl.txt","w"); 
 
     // comparison of initial time moment with ordinary
-    // printf("%.22le %.22le %.22le %.22le %.22le %.22le\n", y[0], y[1],  y[2], y[6],  y[7], y[8] ); 
+     //printf("%.22le %.22le %.22le %.22le %.22le %.22le\n", y[0], y[1],  y[2], y[3],  y[4], y[5] ); 
     // printf("-6.685074817026049E-01, 1.706558853671706E+00, -1.123043465687632E+00, -1.207950275095047E-02, -3.384553498022686E-03, 3.350958555890135E-03 \n");
-                  while (t <= TT) {
-        gsl_odeiv2_driver_apply (driver, &t, t+t_step, y); 
+                
+        while (t <= TT) {
+            gsl_odeiv2_driver_apply (driver, &t, t+t_step, y); 
 
-                // Xh Yh Zh Xl Yl Zl 
-       fprintf(kk,"%f  %.16le %.16le %.16le %.16le %.16le %.16le \n", t, y[0], y[1],  y[2], y[3],  y[4], y[5]);
+    fprintf(kk,"%f  %.16le %.16le %.16le %.16le %.16le %.16le \n", t, y[0], y[1],  y[2], y[3],  y[4], y[5]);
+    fprintf(pp,"%f  %.16le %.16le %.16le %.16le %.16le %.16le \n", t, y[6], y[7], y[8],  y[9], y[10], y[11]);
 
-                // Vxh Vyh Vzh Vxl Vyl Vzl  
-        fprintf(pp,"%f  %.16le %.16le %.16le %.16le %.16le %.16le\n", t, y[6], y[7],  y[8], y[9],  y[10], y[11]);
-
-         //   printf("%.16le %.16le %.16le %.16le %.16le\n", t, y[0], y[1],  y[2], y[3] );
+    // printf ("%.16le %.16le %.16le %.16le %.16le %.16le %.16le\n", t,  y[0], y[1],  y[2], y[3],  y[4], y[5]);
+    printf ("%.16le \n",t);
             }
-    gsl_odeiv2_driver_free (driver);
-                     fclose(kk);
-                     fclose(pp);
-  return 0;
-  //gcc -Wall -I/usr/local/Cellar/gsl/2.6/include gsl_test.c  -L/usr/local/Cellar/gsl/2.6/lib -lgsl -lgslcblas -lm -o gsl_test
-}
-
-
-
-
-
-   
-
-
+            
+            gsl_odeiv2_driver_free (driver);
+    fclose(kk);
+    fclose(pp);
+    return 0;
+    //gcc -Wall -I/usr/local/Cellar/gsl/2.6/include gsl_test_accurate.c  -L/usr/local/Cellar/gsl/2.6/lib -lgsl -lgslcblas -lm -o gsl_test_accurate 
+    }   
