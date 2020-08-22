@@ -1,0 +1,102 @@
+#include<stdio.h>
+#include<string.h>
+#include <ctype.h>
+
+ typedef struct{
+  double relerr, abserr;
+  char abs1[10];
+} numbers;
+
+ typedef struct{
+  char file1[30], file2[30], file3[30], file4[30];
+} file;
+
+int main()
+{
+   int i, k, p, m, o;
+/*     // Part 1 for zeros
+    for (i=0 ; i<=2; i++) {
+      for(k=0; k<=2; k++){
+         p=0.0; 
+     printf("%d %d %d %d \n\n",m,i, k, p);
+      } }
+
+
+          p=0;  
+    for (i=0 ; i<=2; i++) {
+      for(k=3; k<=5; k++){
+        if ( k-i == 3)
+          p= 1.0; 
+           else if ( k-i != 6)
+           p=0.0;
+     printf("%d %d %d %d \n\n",m,i, k, p);
+    } }
+
+      //Part 2 for zeros
+         p=0.0;
+    for (i=3 ; i<=5; i++) {
+      for( k=3; k<=5; k++){
+     printf("%d %d %d %d \n",m,i, k, p);
+      } } */
+ /* double step_abserr = 1e-17, abserr;
+  double step_relerr = 1e-15, relerr;
+  double sum;
+  sum=0;
+
+   for( k=1, p=1; p<9 & k<100000; k*=10, p++  ) { 
+       for( i=1, o=1; o<9 & i<10000; i*=10, o++ ) { 
+    abserr= p*k*step_abserr;
+    relerr= o*i*step_relerr;
+    printf ("%le %le\n ",abserr, relerr);
+ } } */
+
+
+	//start with base filename
+	char baseFilename[] = "ERRORS_ADAMS";
+	//place to store final final name
+	const int maxSize = 30;
+	char Filename[maxSize], Filename2[maxSize], Filename3[maxSize], Filename4[maxSize];
+	//x, y, sigma;
+	int x, y, z, t;
+  int pp;
+  double relerr, abserr, relerr2, abserr2;
+  numbers abs_in[6], rel_in[6], abs_in2[6], rel_in2[6];
+  file abs_err1[35], abs_err2[35], abs_err3[35], abs_err4[35];
+
+	for(int i = 13; i < 19; i++){
+     for(int k = 13; k < 19; k++){
+		x = i;
+    y=  k;
+		sprintf(Filename,"%s_%d_%d.txt",baseFilename,x,y);
+    sprintf(Filename2,"%s_%d.5_%d.txt",baseFilename,x,y);
+    sprintf(Filename3,"%s_%d_%d.5.txt",baseFilename,x,y);
+    sprintf(Filename4,"%s_%d.5_%d.5.txt",baseFilename,x,y);
+  	//printf("%s %s %s %s\n", abs_err1[t].file1, abs_err2[t].file2, abs_err3[t].file3, abs_err4[t].file4); 
+    printf("%s %s %s %s\n", Filename, Filename2, Filename3, Filename4);
+
+    }}
+int count =0;
+char buffer[150];
+    FILE *fp; ;
+      fp = fopen("errors.txt", "r");
+      if(!fp)
+        {
+        printf("Could not open file\n");
+        } 
+  while (fgets(buffer,150, fp)!= NULL) { 
+    for(pp=0; pp<150 ; pp++)  //looking for end of line 
+        if(buffer[pp]=='\0')
+            break;
+          sscanf(buffer, "%lf", &abs_in[i].relerr); 
+          sscanf(buffer, "%lf", &abs_in[i].abserr); 
+           count++;
+    for( p=0; p<pp-1; p++) {            
+        if(isspace(buffer[p])){           //looking for space    
+            sscanf(buffer+p+1, "%lf", &abs_in[count].relerr);
+            sscanf(buffer+p+1, "%lf", &abs_in[count].abserr);
+         // printf("rel=%le abs=%le \n",abs_in[count].relerr, abs_in[count].abserr) ; 
+              count++;
+              } } }
+  	getchar();
+	return (0);
+}
