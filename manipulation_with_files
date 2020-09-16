@@ -13,44 +13,6 @@
 
 int main()
 {
-   int i, k, p, m, o;
-/*     // Part 1 for zeros
-    for (i=0 ; i<=2; i++) {
-      for(k=0; k<=2; k++){
-         p=0.0; 
-     printf("%d %d %d %d \n\n",m,i, k, p);
-      } }
-
-
-          p=0;  
-    for (i=0 ; i<=2; i++) {
-      for(k=3; k<=5; k++){
-        if ( k-i == 3)
-          p= 1.0; 
-           else if ( k-i != 6)
-           p=0.0;
-     printf("%d %d %d %d \n\n",m,i, k, p);
-    } }
-
-      //Part 2 for zeros
-         p=0.0;
-    for (i=3 ; i<=5; i++) {
-      for( k=3; k<=5; k++){
-     printf("%d %d %d %d \n",m,i, k, p);
-      } } */
- /* double step_abserr = 1e-17, abserr;
-  double step_relerr = 1e-15, relerr;
-  double sum;
-  sum=0;
-
-   for( k=1, p=1; p<9 & k<100000; k*=10, p++  ) { 
-       for( i=1, o=1; o<9 & i<10000; i*=10, o++ ) { 
-    abserr= p*k*step_abserr;
-    relerr= o*i*step_relerr;
-    printf ("%le %le\n ",abserr, relerr);
- } } */
-
-
 	//start with base filename
 	char baseFilename[] = "ERRORS_ADAMS";
 	//place to store final final name
