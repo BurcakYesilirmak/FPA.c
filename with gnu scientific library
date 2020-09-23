@@ -2,6 +2,9 @@
      Coordinate Origin :	Sun (body center) [500@10]
      Time Span [change] : 	Start=2018-06-05, Stop=2019-06-05, Step=1 d */
 
+// This code calculates the 2BP using floating point arithmetics with accurate rounding
+// Burcak Yesilirmak , Akdeniz University 09/2020
+
 #include <stdio.h>
 #include <stdio.h>
 #include<float.h>
