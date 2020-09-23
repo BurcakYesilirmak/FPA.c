@@ -1,0 +1,215 @@
+//THIS CODE CALCULATES THE DIFFERENCE BETWEEN ACCURATE AND DOUBLE CALCULATION RESULT
+// AND FINDS THE LATEST POINT OF TRAJECTORY AND CHEBYSCHEV DISTANCE OF DIFFERENCE
+// Burcak Yesilirmak , 23/09/2020
+
+#include <stdio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include<string.h>
+#include<math.h>
+#include<glob.h> 
+
+
+typedef struct {
+  double X , Xl, Vx, Vxl;
+  double Y , Yl, Vy, Vyl;
+  double Z , Zl, Vz, Vzl;
+  double t;
+  double xh1, xl1, xh2, xl2, xh3, xl3; 
+  double xh11, xl11, xh22, xl22, xh33, xl33; 
+ } value;
+
+typedef struct{
+  value integ[2001];
+  float  num;
+  double max;
+  double ending_point;
+} data;
+
+  // Chebyschev Distance : max(|x2 - x1|, |y2 - y1|, |z2 - z1|)
+
+  void Chebyschev_Distance(double X1, double Y1, double Z1, double X2, double Y2, double Z2, double *max) {
+    double X, Y, Z;
+    double max_x, max_y, max_z;
+    int i;
+
+  /*    printf("x1 = %.16lf x2 = %.16le x1-x2 = %.16le\n", X1, X2, fabs(X1-X2) );                  
+        printf("y1 = %.16lf y2 = %.16le y1-y2 = %.16le\n", Y1, Y2, fabs(Y1-Y2) );  
+        printf("z1 = %.16lf z2 = %.16le z1-z2 = %.16le\n", Z1, Z2, fabs(Z1-Z2) );  */
+                 
+  //finding maximum absolute value of the vector
+    X = fabs(X1-X2);
+    Y = fabs(Y1-Y2);
+    Z = fabs(Z1-Z2); 
+
+    max_x = X;
+    max_y = Y;
+    max_z = Z;
+     
+    *max =max_x;
+    if(max_y>*max) *max=max_y;
+    if(max_z>*max) *max=max_z;
+
+       //  printf("max = %.16le\n", *max);  
+       //  exit(1); 
+      } 
+
+
+// COMPARISON OF NUMBERS FOR EACH COLUMN
+
+  void TwoSum(double a, double b,double *xh, double *xl) {
+  double a1 ,b1 ,del_a ,del_b;
+  *xh= a+b;
+  a1= *xh-b;
+  b1= *xh-a1;
+  del_a = a-a1;
+  del_b = b-b1;
+  *xl = del_a+del_b;
+  }
+
+//Pichat and Neumaier’s summation algorithm
+  void Summation2(double xh1, double xl1, double xh2, double xl2,double *xh3, double *xl3 ){  
+  double t,s,u,v,z;
+  TwoSum(xh1, xh2, &t, &s);
+  TwoSum(xl1, xl2, &u, &v);
+  z= v+s+u; 
+  //F2Sum(t, z, xh3, xl3);
+  *xh3=t;
+  *xl3=z; 
+  } 
+
+  int main(int argc, char **argv)
+  {
+        double tmax;
+        long int line1 =2001, i;
+        char name[40];
+        value *ordinary_pos, *ordinary_vel, *accurate_pos, *accurate_vel;
+        value inp[2001];
+        int k, ii, maxl, maxl1, maxl2 ;
+        FILE *ord, *acc, *out[99];
+
+      double abs[10] = {1e-13, 1e-14, 1e-15, 1e-16, 1e-17, 5e-13, 5e-14, 5e-15, 5e-16, 5e-17};
+      double rel[10] = {1e-13, 1e-14, 1e-15, 1e-16, 1e-17, 5e-13, 5e-14, 5e-15, 5e-16, 5e-17}; 
+
+/*      //COMBINE FILES OF DIFFERENCE
+      int count=0; 
+      for( ii =0; ii<10 ; ii++) {
+        for( k=0; k<10 ; k++) {
+            sprintf(name, "DISTANCE_VELOCITY_%1.0le_%1.0le.txt", abs[ii], rel[k]);
+            out[count] = fopen(name,"w");
+            count += 1; 
+            printf("%d %s \n",count, name);
+            } }
+           // exit(1);
+
+        glob_t files1;
+        glob_t files2;  // structer of files
+
+//      finding files starting adams and finish with .txt :
+
+//      const char *pattern1="ORD_POSITION_*.txt";
+//      const char *pattern2="ACC_POSITION_*.txt";    
+
+//      const char *pattern1="ORD_VELOCITY_*.txt";
+//      const char *pattern2="ACC_VELOCITY_*.txt";    
+
+        glob(pattern1, GLOB_ERR, NULL, &files1);
+        glob(pattern2, GLOB_ERR, NULL, &files2); // function thats makes search 
+
+         maxl1 =(int)files1.gl_pathc;
+         maxl2 =(int)files2.gl_pathc; // number of files that glob find 
+
+     // reading file into allocated memory
+  //    ordinary_pos=(value *)malloc(sizeof(value)*line1);
+  //    accurate_pos=(value *)malloc(sizeof(value)*line1);
+      ordinary_vel=(value *)malloc(sizeof(value)*line1);
+      accurate_vel=(value *)malloc(sizeof(value)*line1); 
+
+        
+    // READ: ACCURATE AND ORDINARY POSITION FILES AND TAKE THE DIFFERENCES FOR BOTH OF THEM
+    double o=0;
+    for(k=0; k<maxl1; k++){
+        ord =fopen(files1.gl_pathv[k], "r"); // open files from 1 to the end , the last is the reference , maxl = 100  
+        acc =fopen(files2.gl_pathv[k], "r"); 
+          printf("%d = %s\n", k+1, files1.gl_pathv[k]); 
+          printf("%d = %s\n", k+1, files2.gl_pathv[k]); 
+        //  printf("maxl acc = %d , max ord = %d \n",maxl2, maxl1);
+        //  fscanf(in,"%*f %*f %*f %*f %*f %*f %*f\n"); //skip first line    
+        //  exit(1);      */
+  
+      // FOR POSITION:
+
+  /*   for(i=0; i<line1; i++) { 
+            fscanf(ord,"%lf %lf %lf %lf\n", &ordinary_pos[i].t, &ordinary_pos[i].X, &ordinary_pos[i].Y, &ordinary_pos[i].Z);
+            fscanf(acc,"%lf %lf %lf %lf\n", &accurate_pos[i].t, &accurate_pos[i].X, &accurate_pos[i].Y, &accurate_pos[i].Z);
+            Summation2(ordinary_pos[i].X, o, -accurate_pos[i].X, o, &inp[i].xh1, &inp[i].xl1);
+            Summation2(ordinary_pos[i].Y, o, -accurate_pos[i].Y, o, &inp[i].xh2, &inp[i].xl2);
+            Summation2(ordinary_pos[i].Z, o, -accurate_pos[i].Z, o, &inp[i].xh3, &inp[i].xl3); 
+          //fprintf(out[k],"%f %.16lf %.16lf %.16lf %.16lf %.16lf %.16lf \n", ordinary_pos[i].t, inp[i].xh1, inp[i].xh2, inp[i].xh3, inp[i].xl1, inp[i].xl2, inp[i].xl3); }
+            fprintf(out[k],"%f %.16lf %.16lf %.16lf\n", ordinary_pos[i].t, inp[i].xh1, inp[i].xh2, inp[i].xh3); }
+            fclose(acc);
+            fclose(ord);
+            fclose(out[k]); 
+            }     */
+
+      // FOR VELOCITY:
+    
+  /*   for(i=0; i<line1; i++) { 
+            fscanf(ord,"%lf %lf %lf %lf\n", &ordinary_vel[i].t, &ordinary_vel[i].Vx, &ordinary_vel[i].Vy, &ordinary_vel[i].Vz);
+            fscanf(acc,"%lf %lf %lf %lf\n", &accurate_vel[i].t, &accurate_vel[i].Vx, &accurate_vel[i].Vy, &accurate_vel[i].Vz);
+            Summation2(ordinary_vel[i].Vx, o, -accurate_vel[i].Vx, o, &inp[i].xh11, &inp[i].xl11);
+            Summation2(ordinary_vel[i].Vy, o, -accurate_vel[i].Vy, o, &inp[i].xh22, &inp[i].xl22);
+            Summation2(ordinary_vel[i].Vz, o, -accurate_vel[i].Vz, o, &inp[i].xh33, &inp[i].xl33);
+            fprintf(out[k],"%f %.16lf %.16lf %.16lf\n", ordinary_vel[i].t, inp[i].xh11, inp[i].xh22, inp[i].xh33); }
+            fclose(acc);
+            fclose(ord);
+            fclose(out[k]);
+            }  */
+
+     // START TO FIND THE BEST ERROR VALUES WITH CHEBYSCHEV ALGORITHM
+
+      data *val; 
+      FILE *in;
+      glob_t files; // structer of files
+      const char *pattern="DISTANCE_VELOCITY_*.txt";  // finding files starting adams and finish with .txt
+      glob(pattern, GLOB_ERR, NULL, &files); // function thats makes search   
+
+      maxl=(int)files.gl_pathc;// number of files that glob find 
+      val=(data *)malloc(sizeof(data)*maxl); // memory allocation for maximum value 
+
+      for(k=0; k<maxl; k++){
+        in=fopen(files.gl_pathv[k], "r"); // open files from 1 to the end , the last is the reference , maxl = 100
+//      printf("%d = %s \n", k+1, files.gl_pathv[k]);         
+          for(i=0; i<2001; i++){                              // take each component of each files
+            fscanf(in, "%lf %lf %lf %lf", &val[k].integ[i].t, &val[k].integ[i].X, &val[k].integ[i].Y, &val[k].integ[i].Z);  
+          }
+            printf("%d %.16lf %.16lf %.16lf \n",k+1, val[k].integ[2000].X, val[k].integ[2000].Y, val[k].integ[2000].Z);
+            fclose(in);
+      }   
+
+/*    //  printf("maxl acc = %d\n",maxl);
+      for(k=0 ; k<maxl-1; k++) {  // subtract reference and find the maximum Chebyschev Distance of each file 
+        val[k].max=0.0;
+          for(i=0; i<2001; i++){
+          //Chebyschev Distance wrt the last error values:
+            Chebyschev_Distance(val[99].integ[i].X, val[99].integ[i].Y, val[99].integ[i].Z, val[k].integ[i].X, val[k].integ[i].Y, val[k].integ[i].Z, &tmax);
+            if(tmax>val[k].max) val[k].max=tmax;} }  
+
+      //COMBINE ERRORS and PUT MAXIMUM DIFFERENCE    
+    int count=0;  
+    for( i=0; i<10 ; i++) {
+        for( k=0; k<10 ; k++) {
+       // integrator_adams(abs[i], rel[k]); 
+          printf("%d %.16le %1.0le %1.0le\n", count+1 , val[count].max, rel[i], abs[k]);
+          count += 1;
+      } } */
+             globfree(&files);
+           //  globfree(&files1);
+           //  globfree(&files2);
+             return (0);
+
+          }
+
+
+
+
