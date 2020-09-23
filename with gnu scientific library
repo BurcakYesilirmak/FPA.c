@@ -626,7 +626,7 @@ void pairs(double *x_h, double *x_l) {
     for( i=0; i<10 ; i++) {
         for( k=0; k<10 ; k++) {
             integrator_adams(abs[i], rel[k]); 
-           //    printf("%d %1.0le %1.0le\n",count+1, rel[i], abs[k]);
+           //    printf("%d %1.0le %1.0le\n",count+1, abs[i], rel[k]);
           count += 1;
       } } 
     return 0;
