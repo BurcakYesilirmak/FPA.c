@@ -207,7 +207,90 @@ void pairs(double *x_h, double *x_l) {
       Summation2(t0,t1,t2,t3,xh3,xl3);
       }
 
-    void unit_vector_pairwise(double xh[3], double xl[3], double *x_h, double *x_l) {
+
+  void Inverse_SquareRoot(double R_h[3], double R_l[3], double *xh3, double *xl3) {  //as pairs
+      double xh, xl, y0, y1;
+      double p0, p1, t4, t5;
+
+      square_product(R_h, R_l, &t4, &t5);
+  
+     y0 = sqrt(t4);                          //starting to the square root 
+     VeltkampSplit(y0,&xh, &xl) ;
+     Mult(xh, xl, xh, xl, &p0, &p1); 
+     y1 = t4 - p0;
+     y1 -= p1;
+     y1 += t5 ;
+     if(y0<0) { 
+     printf("error \n"); }
+     y1 = (y1 / y0)*0.5;         // y0 and y1 are pairs of the square root operation
+     F2Sum(y0, y1, xh3, xl3); // k*sqrt(k)    
+     } 
+ 
+ // FUNCTION WITH INVERSE SQUARE ROOT
+
+/* int func (double t,const double y[], double f[], void *params)
+  {
+ 
+  (void)(t); 
+  data *par = (data *)params;
+  // double mu_h =  0.017202098950000001276;
+  // double mu_l = -0.000000000000000001276;
+
+   double xh, yh, zh, xl, yl, zl, xx, yy, xx2, yy2, xx3, yy3;
+   double xh2, xl2, xh3, xl3, xh4, xl4;
+   double sc_h, sc_l, sc_h2, sc_l2, sc_h3, sc_l3;
+
+    //y[0]=x , y[1]=y , y[2]=z 
+
+    f[0] = y[3];  // Vx_h       // I did not take into account lowest part of velocity vector
+    f[1] = y[4];  // Vy_h
+    f[2] = y[5];  // Vz_h   
+
+    xh = y[0]; // pairs of biggest part of position vector
+    yh = y[1];
+    zh = y[2];
+
+    xl = 0; // I neglected smallest part
+    yl = 0;
+    zl = 0; 
+
+    double R_h[3] = {xh, yh, zh};
+    double R_l[3] = {xl, yl, zl};
+
+       //k = y[0]*y[0]+y[1]*y[1]+y[2]*y[2] 
+
+       Inverse_SquareRoot(R_h, R_l, &sc_h, &sc_l);
+       square_product(R_h, R_l, &sc_h2, &sc_l2);  
+ 
+       //  FOR BIGGEST PART
+       Mult(par->mu_h, par->mu_l, xh, xl, &xx, &yy); //  -mu / (X^2+Y^2+Z^2)
+       Mult(par->mu_h, par->mu_l, yh, yl, &xx2, &yy2);
+       Mult(par->mu_h, par->mu_l, zh, zl, &xx3, &yy3);    
+       // (-mu/k)*UNIT for each component , where k = (Xh+Xl)^2+(Yh+Yl)^2+(Zh+Zl)^2
+
+       Mult(sc_h, sc_l, sc_h2, sc_l2, &sc_h3, &sc_l3); //  -mu / (X^2+Y^2+Z^2)
+
+       Division(xx, yy,   sc_h3, sc_l3, &xh2, &xl2);
+       Division(xx2, yy2, sc_h3, sc_l3, &xh3, &xl3);
+       Division(xx3, yy3, sc_h3, sc_l3, &xh4, &xl4);
+            
+      printf("%.16le\n", xh2);
+                  printf("%.16le\n", xh3);
+                           printf("%.16le\n", xh4);
+           printf("%.16le\n", xl2);
+                  printf("%.16le\n", xl3);
+                           printf("%.16le\n", xl4);                    
+    exit(1);   
+       // assign corresponding system   
+       // -mu*R/ |R|^(3/2) 
+
+       f[3]=  xh2;   // h_x
+       f[4]=  xh3;   // h_y
+       f[5]=  xh4;   // h_z 
+  return GSL_SUCCESS;
+}   */
+
+ void unit_vector_pairwise(double xh[3], double xl[3], double *x_h, double *x_l) {
 
         double F, dF, scalar_new, Z_new, Y_new, X_new ;
         double xh22, xl22, xh33, xl33, yhh, yll, zh33, zl33, dfhh, dfll;
@@ -264,25 +347,9 @@ void pairs(double *x_h, double *x_l) {
     x_l[2] =  xl333; 
    } 
 
-  void Inverse_SquareRoot(double R_h[3], double R_l[3], double *xh3, double *xl3) {  //as pairs
-      double xh, xl, y0, y1;
-      double p0, p1, t4, t5;
 
-      square_product(R_h, R_l, &t4, &t5);
-  
-     y0 = sqrt(t4);                          //starting to the square root 
-     VeltkampSplit(y0,&xh, &xl) ;
-     Mult(xh, xl, xh, xl, &p0, &p1); 
-     y1 = t4 - p0;
-     y1 -= p1;
-     y1 += t5 ;
-     if(y0<0) { 
-     printf("error \n"); }
-     y1 = (y1 / y0)*0.5;         // y0 and y1 are pairs of the square root operation
-     F2Sum(y0, y1, xh3, xl3); // k*sqrt(k)    
-     } 
-
-  int func (double t,const double y[], double f[], void *params)
+ // FUNCTION WITH UNIT VECTOR ALGORITHM
+ int func (double t,const double y[], double f[], void *params)
   {
  
   (void)(t); 
@@ -304,7 +371,7 @@ void pairs(double *x_h, double *x_l) {
     yh = y[1];
     zh = y[2];
 
-    xl = 0; // I neglected smallest part
+    xl = 0; // neglected smallest part for once 
     yl = 0;
     zl = 0; 
 
@@ -343,71 +410,6 @@ void pairs(double *x_h, double *x_l) {
     
   return GSL_SUCCESS;
 } 
-
-
-// FUNCTION WITH INVERSE SQUARE ROOT
-
-/* int func (double t,const double y[], double f[], void *params)
-  {
- 
-  (void)(t); 
-  data *par = (data *)params;
-  // double mu_h =  0.017202098950000001276;
-  // double mu_l = -0.000000000000000001276;
-
-   double xh, yh, zh, xl, yl, zl, xx, yy, xx2, yy2, xx3, yy3;
-   double xh2, xl2, xh3, xl3, xh4, xl4;
-   double sc_h, sc_l, sc_h2, sc_l2, sc_h3, sc_l3;
-
-    //y[0]=x , y[1]=y , y[2]=z 
-
-    f[0] = y[3];  // Vx_h       // I did not take into account lowest part of velocity vector
-    f[1] = y[4];  // Vy_h
-    f[2] = y[5];  // Vz_h   
-
-    xh = y[0]; // pairs of biggest part of position vector
-    yh = y[1];
-    zh = y[2];
-
-    xl = 0; // I neglected smallest part
-    yl = 0;
-    zl = 0; 
-
-    double R_h[3] = {xh, yh, zh};
-    double R_l[3] = {xl, yl, zl};
-
-       //k = y[0]*y[0]+y[1]*y[1]+y[2]*y[2] 
-
-       Inverse_SquareRoot(R_h, R_l, &sc_h, &sc_l);
-       square_product(R_h, R_l, &sc_h2, &sc_l2);  
- 
-       //  FOR BIGGEST PART
-       Mult(par->mu_h, par->mu_l, xh, xl, &xx, &yy); //  -mu / (X^2+Y^2+Z^2)
-       Mult(par->mu_h, par->mu_l, yh, yl, &xx2, &yy2);
-       Mult(par->mu_h, par->mu_l, zh, zl, &xx3, &yy3);    
-       // (-mu/k)*UNIT for each component , where k = (Xh+Xl)^2+(Yh+Yl)^2+(Zh+Zl)^2
-
-       Mult(sc_h, sc_l, sc_h2, sc_l2, &sc_h3, &sc_l3); //  -mu / (X^2+Y^2+Z^2)
-
-       Division(xx, yy,   sc_h3, sc_l3, &xh2, &xl2);
-       Division(xx2, yy2, sc_h3, sc_l3, &xh3, &xl3);
-       Division(xx3, yy3, sc_h3, sc_l3, &xh4, &xl4);
-            
- /*     printf("%.16le\n", xh2);
-                  printf("%.16le\n", xh3);
-                           printf("%.16le\n", xh4);
-           printf("%.16le\n", xl2);
-                  printf("%.16le\n", xl3);
-                           printf("%.16le\n", xl4);                    
-    exit(1);   */
-       // assign corresponding system   
-       // -mu*R/ |R|^(3/2) 
-
-       f[3]=  xh2;   // h_x
-       f[4]=  xh3;   // h_y
-       f[5]=  xh4;   // h_z 
-  return GSL_SUCCESS;
-}   */
 
   int jac (double t,const double y[], double *dfdy,
      double dfdt[], void *params)
@@ -458,6 +460,7 @@ void pairs(double *x_h, double *x_l) {
      Division(inp[0].xh, inp[0].xl, y_h, y_l, &inp[1].yh, &inp[1].yl); // (mu/(k^2)/(Yh+Yl)
      Division(inp[0].xh, inp[0].xl, z_h, z_l, &inp[1].zh, &inp[1].zl); // (mu/(k^2)/(Zh+Zl)
 
+    // set 3*R^2-k
      Mult(x_h, x_l, x_h, x_l, &inp[2].xh, &inp[2].xl); //(Xh+Xl)^2
      Mult(y_h, y_l, y_h, y_l, &inp[2].yh, &inp[2].yl); //(Yh+Yl)^2
      Mult(z_h, z_l, z_h, z_l, &inp[2].zh, &inp[2].zl); //(Zh+Zl)^2
@@ -466,13 +469,13 @@ void pairs(double *x_h, double *x_l) {
      Mult(inp[2].yh, inp[2].yl, 3.0, o, &inp[3].yh, &inp[3].yl);    // 3*(Yh+Yl)^2
      Mult(inp[2].zh, inp[2].zl, 3.0, o, &inp[3].zh, &inp[3].zl);    // 3*(Zh+Zl)^2
 
-     Summation2(inp[3].xh, inp[3].xl, -sc_H, -sc_L, &inp[4].xh, &inp[4].xl);   //3*(Xh+Xl)^2-k^2
-     Summation2(inp[3].yh, inp[3].yl, -sc_H, -sc_L, &inp[4].yh, &inp[4].yl);   //3*(Yh+Yl)^2-k^2
-     Summation2(inp[3].zh, inp[3].zl, -sc_H, -sc_L, &inp[4].zh, &inp[4].zl);   //3*(Zh+Zl)^2-k^2
+     Summation2(inp[3].xh, inp[3].xl, -sc_h, -sc_l, &inp[4].xh, &inp[4].xl);   //3*(Xh+Xl)^2-k
+     Summation2(inp[3].yh, inp[3].yl, -sc_h, -sc_l, &inp[4].yh, &inp[4].yl);   //3*(Yh+Yl)^2-k
+     Summation2(inp[3].zh, inp[3].zl, -sc_h, -sc_l, &inp[4].zh, &inp[4].zl);   //3*(Zh+Zl)^2-k
 
-     Mult(inp[4].xh, inp[4].xl, inp[1].xh, inp[1].xl, &inp[5].xh, &inp[5].xl);    // 3*X^2-k^2*(mu/k^2)/(Xh+Xl) = A
-     Mult(inp[4].yh, inp[4].yl, inp[1].xh, inp[1].xl, &inp[5].yh, &inp[5].yl);    // 3*Y^2-k^2*(mu/k^2)/(Yh+Yl) = B
-     Mult(inp[4].zh, inp[4].zl, inp[1].xh, inp[1].xl, &inp[5].zh, &inp[5].zl);    // 3*Z^2-k^2*(mu/k^2)/(Zh+Zl) = C
+     Mult(inp[4].xh, inp[4].xl, inp[1].xh, inp[1].xl, &inp[5].xh, &inp[5].xl);    // (3*X^2-k)*(mu/k^2)/(Xh+Xl) = A
+     Mult(inp[4].yh, inp[4].yl, inp[1].xh, inp[1].xl, &inp[5].yh, &inp[5].yl);    // (3*Y^2-k)*(mu/k^2)/(Yh+Yl) = B
+     Mult(inp[4].zh, inp[4].zl, inp[1].xh, inp[1].xl, &inp[5].zh, &inp[5].zl);    // (3*Z^2-k)*(mu/k^2)/(Zh+Zl) = C
 
 
      Mult(inp[5].xh, inp[5].xl, unith[0], unitl[0], &inp[0].h_Unit, &inp[0].l_Unit);    // A*I 
@@ -483,21 +486,21 @@ void pairs(double *x_h, double *x_l) {
     // SECOND PART
     // calculate 3*mu*y[0]*y[1]/(k^2*sqrt(k) where k = X^2+Y^2+Z^2
     
-     Mult(xH_muk2, xL_muk2, x_h, x_l, &inp[6].xh, &inp[6].xl);    // 3*mu/k2* Xh
-     Mult(xH_muk2, xL_muk2, y_h, y_l, &inp[6].yh, &inp[6].yl);    // 3*mu/k2* Yh
-     Mult(xH_muk2, xL_muk2, z_h, z_l, &inp[6].zh, &inp[6].zl);    // 3*mu/k2* Zh
+     Mult(xH_muk2, xL_muk2, x_h, x_l, &inp[6].xh, &inp[6].xl);    // 3*mu/k2* Xh = a
+     Mult(xH_muk2, xL_muk2, y_h, y_l, &inp[6].yh, &inp[6].yl);    // 3*mu/k2* Yh = b
+     Mult(xH_muk2, xL_muk2, z_h, z_l, &inp[6].zh, &inp[6].zl);    // 3*mu/k2* Zh = c
     
      // for I
-     Mult(inp[6].yh, inp[6].yl, unith[0], unitl[0], &inp[2].h_unit, &inp[2].l_unit);    // 3*mu/k2*Yh*I
-     Mult(inp[6].zh, inp[6].zl, unith[0], unitl[0], &inp[4].h_unit, &inp[4].l_unit);    // 3*mu/k2*Zh*I
+     Mult(inp[6].yh, inp[6].yl, unith[0], unitl[0], &inp[2].h_unit, &inp[2].l_unit);    // b*i
+     Mult(inp[6].zh, inp[6].zl, unith[0], unitl[0], &inp[4].h_unit, &inp[4].l_unit);    // c*i
 
      // for J
-     Mult(inp[6].xh, inp[6].xl, unith[1], unitl[1], &inp[0].h_unit, &inp[0].l_unit);    // 3*mu/k2*Xh*J
-     Mult(inp[6].zh, inp[6].zl, unith[1], unitl[1], &inp[5].h_unit, &inp[5].l_unit);    // 3*mu/k2*Zh*J
+     Mult(inp[6].xh, inp[6].xl, unith[1], unitl[1], &inp[0].h_unit, &inp[0].l_unit);    // a*j
+     Mult(inp[6].zh, inp[6].zl, unith[1], unitl[1], &inp[5].h_unit, &inp[5].l_unit);    // c*j
 
      // for K
-     Mult(inp[6].xh, inp[6].xl, unith[2], unitl[2], &inp[1].h_unit, &inp[1].l_unit);    // 3*mu/k2*Xh*K
-     Mult(inp[6].yh, inp[6].yl, unith[2], unitl[2], &inp[3].h_unit, &inp[3].l_unit);    // 3*mu/k2*Yh*K
+     Mult(inp[6].xh, inp[6].xl, unith[2], unitl[2], &inp[1].h_unit, &inp[1].l_unit);    // a*k
+     Mult(inp[6].yh, inp[6].yl, unith[2], unitl[2], &inp[3].h_unit, &inp[3].l_unit);    // b*k
 
 
     gsl_matrix_view dfdy_mat
@@ -531,20 +534,18 @@ void pairs(double *x_h, double *x_l) {
             gsl_matrix_set (m, i, k, p);
       } }
 
-
   gsl_matrix_set (m, 3, 0, inp[0].h_Unit);
   gsl_matrix_set (m, 4, 1, inp[1].h_Unit);
   gsl_matrix_set (m, 5, 2, inp[2].h_Unit);
 
-  gsl_matrix_set (m, 3, 1, inp[2].h_unit);
-  gsl_matrix_set (m, 3, 2, inp[4].h_unit);
+  gsl_matrix_set (m, 3, 1, inp[0].h_unit);
+  gsl_matrix_set (m, 3, 2, inp[1].h_unit);
 
-  gsl_matrix_set (m, 4, 0, inp[0].h_unit);
-  gsl_matrix_set (m, 4, 2, inp[5].h_unit);
+  gsl_matrix_set (m, 4, 0, inp[2].h_unit);
+  gsl_matrix_set (m, 4, 2, inp[3].h_unit);
 
-  gsl_matrix_set (m, 5, 0, inp[1].h_unit);
-  gsl_matrix_set (m, 5, 1, inp[3].h_unit);
-
+  gsl_matrix_set (m, 5, 0, inp[4].h_unit);
+  gsl_matrix_set (m, 5, 1, inp[5].h_unit);
   // set explicit t dependence of f[i] 
   dfdt[0] = 0.0;
   dfdt[1] = 0.0;
@@ -555,9 +556,12 @@ void pairs(double *x_h, double *x_l) {
   return GSL_SUCCESS;
   }
 
-   void integrator_adams(double abserr[10], double relerr[10]) {
+ /* void integrator_adams(double abserr, double relerr) {
     double xh[6], xl[6], k_h, k_l;
-
+    char name[25];
+    FILE *out;
+    sprintf(name, "ACC_%.0f_%.0f.txt", -log10(relerr), -log10(abserr));
+    out=fopen(name,"w");
     // split the vector components as pairs
      pairs(xh, xl) ;
 //  printf("%.16le %.16le %.16le %.16le %.16le %.16le \n", xh[0], xh[1], xh[2], xh[3], xh[4], xh[5]);
@@ -585,43 +589,126 @@ void pairs(double *x_h, double *x_l) {
      const gsl_odeiv2_step_type * T = gsl_odeiv2_step_msadams;
     
 
- /* set errors and create the driver object :
-    errors are coming from main function as combination    */
+ // set errors and create the driver object :
+  //  errors are coming from main function as combination    
 
      gsl_odeiv2_driver* driver= 
-         gsl_odeiv2_driver_alloc_y_new(&sys, T, t_step, *abserr, *relerr);
+         gsl_odeiv2_driver_alloc_y_new(&sys, T, t_step, abserr, relerr);
                   
         // set the values inside y[]
         double y[6] = { xh[0], xh[1], xh[2], xh[3], xh[4], xh[5]};
        
         while (t <= TT) {
             gsl_odeiv2_driver_apply (driver, &t, t+t_step, y); 
-            printf ("%.16le %.16le %.16le %.16le \n", t, y[0], y[1], y[2]);            
+            fprintf(out,"%.16le %.16le %.16le %.16le \n", t, y[0], y[1], y[2]);            
            // printf ("%.16le %.16le %.16le %.16le \n", t, y[3], y[4], y[5]);
      // printf ("%.16le \n",t);
             }       
-            gsl_odeiv2_driver_free (driver);  }
+            gsl_odeiv2_driver_free (driver);  
+            fclose(out);
+            } 
 
-    int main (void) 
+ int main (void) 
     {
       int i, k;
-      double abserr, relerr;
       //RELATIVE AND ABSOLUTE ERROR VALUES
       double abs[10] = {1e-13, 5e-13, 1e-14, 5e-14, 1e-15, 5e-15, 1e-16, 5e-16, 1e-17, 5e-17};
       double rel[10] = {1e-13, 5e-13, 1e-14, 5e-14, 1e-15, 5e-15, 1e-16, 5e-16, 1e-17, 5e-17};
 
       //COMBINE ERRORS  
-      for( i=0; i<10 ; i++) {
+    int count=0;  
+    for( i=0; i<10 ; i++) {
         for( k=0; k<10 ; k++) {
-          abserr= abs[i];
-          relerr= rel[k];
-          integrator_adams(&abserr, &relerr); 
-      // printf ("%.16le %.16le \n", abserr, relerr);
+        //  integrator_adams(abs[i], rel[k]); 
+          printf("%d %.1f %.1f\n",count+1, -log10(abs[i]), -log10(rel[k]));
+          count += 1;
       } } 
-      //  integrator_adams(&abserr, &relerr); 
-
     return 0;
-    } 
+    } */
+
+
+  int main (void) 
+    {
+    double abserr = 5e-16;
+    double relerr = 1e-14;
+    double k_h, k_l, xh[6], xl[6];
+         pairs(xh, xl) ;
+
+    // split the numbers as pairs
+   // double xh[6]= {-0.66850748170260487768, 1.70655885367170601085, -1.1230434656876320254, -0.012079502750950470852, -0.003384553498022686239, 0.00335095855589013494};
+  //  double xl[6]= {-0.00000000000000002232, -0.00000000000000001085, 0.0000000000000000254, 0.000000000000000000851, 0.000000000000000000239, 0.00000000000000000006};
+     data *par;
+     par=(data *)malloc(sizeof(data));
+     k_h=  0.017202098950000001276;
+     k_l= -0.000000000000000001276;
+     Mult(k_h, k_l, k_h, k_l, &par->mu_h, &par->mu_l); 
+
+        gsl_odeiv2_system sys = {func, jac, 6, par};
+
+    // time step parameters 
+     double t = 0.0, t_step=1, TT=2000;
+
+    // Select explicit method
+     const gsl_odeiv2_step_type * T = gsl_odeiv2_step_msadams;
+    
+
+    //set errors and create the driver object
+    gsl_odeiv2_driver* driver= 
+         gsl_odeiv2_driver_alloc_y_new(&sys, T, t_step, abserr, relerr); 
+         
+             // set the values inside y[]
+    double y[6] = { xh[0], xh[1], xh[2], xh[3], xh[4], xh[5]};
+
+    FILE *kk, *pp;
+      kk=fopen("A3.txt","w");
+      pp=fopen("A4.txt","w");  
+    // comparison of initial time moment with ordinary
+     //printf("%.22le %.22le %.22le %.22le %.22le %.22le\n", y[0], y[1],  y[2], y[3],  y[4], y[5] ); 
+    // printf("-6.685074817026049E-01, 1.706558853671706E+00, -1.123043465687632E+00, -1.207950275095047E-02, -3.384553498022686E-03, 3.350958555890135E-03 \n");
+                
+        while (t <= TT) {
+            gsl_odeiv2_driver_apply (driver, &t, t+t_step, y); 
+
+    fprintf(kk,"%f  %.16le %.16le %.16le \n", t, y[0], y[1], y[2]);
+    fprintf(pp,"%f  %.16le %.16le %.16le \n", t, y[3], y[4], y[5]);
+ // printf ("%.16le \n",t);
+            }       
+            gsl_odeiv2_driver_free (driver);
+    fclose(kk);
+    fclose(pp);
+    return 0;
+    }   
         //gcc -Wall -I/usr/local/Cellar/gsl/2.6/include gsl_test_accurate.c  -L/usr/local/Cellar/gsl/2.6/lib -lgsl -lgslcblas -lm -o gsl_test_accurate
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
