@@ -1,4 +1,4 @@
-// This code convertes a file content: conversion "double" words to long double
+// This code convertes a file content: conversion "double" words to "long double"
 // Burcak Yesilirmak
 
 #include<stdio.h>
